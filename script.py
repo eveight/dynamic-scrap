@@ -35,14 +35,15 @@ def get_all_urls():
         soup = Bs(html, 'html.parser')
 
         # Получаем ссылки со страниц, срез использован для удаления рекламных блоков.
-        for link in soup.find_all('a', class_='link__09f24__1kwXV link-color--inherit__09f24__3PYlA link-size--inherit__09f24__2Uj95')[2:-1:]:
+        for link in soup.find_all('a', class_='link__09f24__1kwXV link-color--inherit__09f24'
+                                              '__3PYlA link-size--inherit__09f24__2Uj95')[2:-1:]:
             all_urls.append('https://www.yelp.com' + link.get('href'))
 
     return all_urls
 
 
 def scrap_data(urls):
-    """ Скрапинг стр. с использованием Selenium и Google API """
+    """ Скрапинг стр. с использованием BeautifulSoup, Selenium и Google API """
     result_data = []
     for url in urls:
         time.sleep(10)  # Sleeping
@@ -54,7 +55,16 @@ def scrap_data(urls):
 
         soup = Bs(html, 'html.parser')
 
-        # Выбор главного дива
+        # Выбор дива для тэгов
+        div_for_tags = soup.find_all('div', class_='photo-header-content__373c0__j8x16')
+        span_for_tags = div_for_tags[0].find_all('span', class_='text__373c0__2Kxyz')
+        tags_res = []
+        for a in span_for_tags:
+            a_for_tags = a.find('a')
+            if a_for_tags:
+                tags_res.append(a_for_tags.text)
+
+        # Выбор главного дива для контактов
         div_for_contacts = soup.find_all('div', class_='css-0')
         if len(div_for_contacts) > 1:
             div_for_contacts = div_for_contacts[1]
@@ -87,7 +97,7 @@ def scrap_data(urls):
 
         name = soup.h1.string
 
-        # Сплит адресса для получения промежуточных значений
+        # Сплит адреса для получения промежуточных значений
         split_address = address.split(' ')
         community = split_address[1]
         postcode = split_address[-2] + ' ' + split_address[-1]
@@ -97,7 +107,9 @@ def scrap_data(urls):
         # Запрос к Google API для получения координат и рейтинга заведений
         address_for_api = '{},{}'.format(name, address)
 
-        r = requests.get('https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={}&inputtype=textquery&fields=formatted_address,name,rating,geometry&key=AIzaSyCJY5ZP9F48iCkaD1R34DY7F8xDWjcINY0'.format(address_for_api))
+        r = requests.get('https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={}'
+                         '&inputtype=textquery&fields=formatted_address,name,rating,geometry&'
+                         'key=AIzaSyCJY5ZP9F48iCkaD1R34DY7F8xDWjcINY0'.format(address_for_api))
         result_from_api = r.json()
 
         location_lat = result_from_api['candidates'][0]['geometry']['location']['lat']
@@ -108,7 +120,7 @@ def scrap_data(urls):
             'name': name,
             'phone': phone,
             'link': link,
-            'tags': None,
+            'tags': ', '.join(tags_res),
             'address': address,
             'community': community,
             'postcode': postcode,
