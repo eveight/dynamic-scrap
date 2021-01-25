@@ -22,7 +22,7 @@ driver = webdriver.Chrome()  # Selenium
 
 
 def get_all_urls():
-    """ Получение первых 50 URL-адрессов. """
+    """ Получение первых 50 URL-адресов. """
     page_number = [i for i in range(0, 50, 10)]
 
     all_urls = []
