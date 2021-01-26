@@ -66,40 +66,41 @@ def scrap_data(urls):
 
         # Выбор главного дива для контактов
         div_for_contacts = soup.find_all('div', class_='css-0')
-        if len(div_for_contacts) > 1:
-            div_for_contacts = div_for_contacts[1]
-        else:
-            div_for_contacts = div_for_contacts[0]
-
-        p_for_contacts = div_for_contacts.find_all('p', class_='text__373c0__2Kxyz'),
+        a_tag = []
+        p_tag = []
+        for element in div_for_contacts:
+            a_element = element.find('a', class_='link__373c0__1G70M')
+            p_element = element.find_all('p', class_='text__373c0__2Kxyz')
+            if a_element and p_element:
+                a_tag.append(a_element.text)
+                p_tag.append(p_element)
 
         try:
-            # Полная информация о контактах
-            phone = p_for_contacts[0][3].text
-            address = p_for_contacts[0][4].text.replace('Get Directions', '')
-            link = div_for_contacts.find('a', class_='link__373c0__1G70M').text
-
-        except IndexError:
-            try:
-                # Информация без сайта
-                phone = p_for_contacts[0][1].text
-                address = p_for_contacts[0][3].text.replace('Get Directions', '')
+            if a_tag[0] == 'Get Directions' and 'Phone number' not in p_tag[0][0]:
+                # Из доступной информации только адрес
+                phone = None
+                address = p_tag[0][1].text
                 link = None
-            except IndexError:
-                try:
-                    # Из доступной информации только адрес
-                    phone = None
-                    address = p_for_contacts[0][1].text.replace('Get Directions', '')
-                    link = None
-                except IndexError:
-                    print('Упс... похоже структура сайта изменилась. Ссылка - {}'.format(url))
-                    continue
+            elif a_tag[0] == 'Get Directions':
+                # Информация без сайта
+                phone = p_tag[0][1].text
+                address = p_tag[0][3].text
+                link = None
+            else:
+                # Полная информация о контактах
+                phone = p_tag[0][3].text
+                address = p_tag[0][5].text
+                link = a_tag[0]
+                print(link)
+        except IndexError:
+            print('Упс... похоже структура сайта изменилась. Ссылка - {}'.format(url))
+            continue
 
         name = soup.h1.string
 
         # Сплит адреса для получения промежуточных значений
         split_address = address.split(' ')
-        community = split_address[1]
+        community = split_address[0] + ' ' + split_address[1]
         postcode = split_address[-2] + ' ' + split_address[-1]
 
         rating = soup.find('div', class_='i-stars__373c0__1T6rz')['aria-label'].split(' ')[0]
