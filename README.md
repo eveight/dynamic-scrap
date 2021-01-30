@@ -1,4 +1,5 @@
-# trainee
-Скрапинг ТЗ
+# dynamic-scrap
+Скрапинг
 
-Техническое задание на позицию Trainee. Скрапинг динамичных страниц с использованием BeautifulSoup, Selenium и Google API. 
+Скрапинг динамичных страниц с использованием BeautifulSoup, Selenium и Google API. 
+С последующей загрузкой данных в MySQL.
